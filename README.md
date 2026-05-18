@@ -94,90 +94,6 @@ Controladores implementados:
 
 Las rutas de autenticación usan sesión con cookie HTTPOnly y están preparadas para consumo desde Angular con `withCredentials: true`.
 
-## Autenticacion
-
-La autenticación actual está publicada en el tag `v0.2.0-auth`.
-
-Flujos implementados:
-
-- Registro público.
-- Login con `email` y `password`.
-- Consulta del usuario autenticado actual.
-- Logout con invalidación de sesión.
-
-### Registro
-
-- `POST /api/auth/register`
-
-Comportamiento:
-
-- Valida `name`, `email`, `password` y `password_confirmation`.
-- El primer usuario registrado recibe rol `admin`.
-- Los usuarios posteriores reciben rol `user`.
-- Ignora cualquier `role` enviado por el cliente.
-- Inicia sesión automáticamente con cookie HTTPOnly.
-
-### Login
-
-- `POST /api/auth/login`
-
-Comportamiento:
-
-- Valida `email` y `password`.
-- Responde `401` con mensaje genérico si las credenciales son inválidas.
-- Regenera la sesión después de autenticación exitosa.
-- Devuelve el usuario autenticado con su `role`.
-
-### Usuario Autenticado
-
-- `GET /api/auth/me`
-
-Comportamiento:
-
-- Requiere sesión autenticada válida.
-- Devuelve `id`, `name`, `email`, `role`, `created_at` y `updated_at`.
-- Si no hay sesión activa, responde `401` con `{"message":"Unauthenticated."}`.
-
-### Logout
-
-- `POST /api/auth/logout`
-
-Comportamiento:
-
-- Requiere sesión autenticada válida.
-- Cierra la sesión actual.
-- Invalida la sesión.
-- Regenera el token de sesión.
-- Responde `204 No Content`.
-
-### Contrato JSON Actual
-
-Respuesta exitosa típica:
-
-```json
-{
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "Anthony Rengifo",
-      "email": "anthony@example.com",
-      "role": "admin",
-      "created_at": "2026-05-17T00:00:00.000000Z",
-      "updated_at": "2026-05-17T00:00:00.000000Z"
-    }
-  },
-  "message": "Operation completed successfully"
-}
-```
-
-Usuario no autenticado:
-
-```json
-{
-  "message": "Unauthenticated."
-}
-```
-
 ## Base De Datos
 
 La estructura inicial de base de datos corresponde al tag `v0.1.0-database`.
@@ -267,6 +183,90 @@ Decisiones:
 - Existen constraints para impedir `quantity <= 0`, `unit_price < 0` y `subtotal < 0`.
 - `purchase_id` usa `cascadeOnDelete()` para eliminar items si se elimina la compra.
 - `product_id` usa `restrictOnDelete()` para bloquear eliminacion de productos con historial de compra.
+
+## Autenticacion
+
+La autenticación actual está publicada en el tag `v0.2.0-auth`.
+
+Flujos implementados:
+
+- Registro público.
+- Login con `email` y `password`.
+- Consulta del usuario autenticado actual.
+- Logout con invalidación de sesión.
+
+### Registro
+
+- `POST /api/auth/register`
+
+Comportamiento:
+
+- Valida `name`, `email`, `password` y `password_confirmation`.
+- El primer usuario registrado recibe rol `admin`.
+- Los usuarios posteriores reciben rol `user`.
+- Ignora cualquier `role` enviado por el cliente.
+- Inicia sesión automáticamente con cookie HTTPOnly.
+
+### Login
+
+- `POST /api/auth/login`
+
+Comportamiento:
+
+- Valida `email` y `password`.
+- Responde `401` con mensaje genérico si las credenciales son inválidas.
+- Regenera la sesión después de autenticación exitosa.
+- Devuelve el usuario autenticado con su `role`.
+
+### Usuario Autenticado
+
+- `GET /api/auth/me`
+
+Comportamiento:
+
+- Requiere sesión autenticada válida.
+- Devuelve `id`, `name`, `email`, `role`, `created_at` y `updated_at`.
+- Si no hay sesión activa, responde `401` con `{"message":"Unauthenticated."}`.
+
+### Logout
+
+- `POST /api/auth/logout`
+
+Comportamiento:
+
+- Requiere sesión autenticada válida.
+- Cierra la sesión actual.
+- Invalida la sesión.
+- Regenera el token de sesión.
+- Responde `204 No Content`.
+
+### Contrato JSON Actual
+
+Respuesta exitosa típica:
+
+```json
+{
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Anthony Rengifo",
+            "email": "anthony@example.com",
+            "role": "admin",
+            "created_at": "2026-05-17T00:00:00.000000Z",
+            "updated_at": "2026-05-17T00:00:00.000000Z"
+        }
+    },
+    "message": "Operation completed successfully"
+}
+```
+
+Usuario no autenticado:
+
+```json
+{
+    "message": "Unauthenticated."
+}
+```
 
 ## Gestion De Usuarios
 
