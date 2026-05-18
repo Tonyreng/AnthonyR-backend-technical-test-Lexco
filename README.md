@@ -73,7 +73,105 @@ Las rutas API base están registradas en `routes/api.php`, separadas en:
 - `routes/users.php`
 - `routes/products.php`
 
-Todavía no hay endpoints ni controladores implementados.
+Endpoints implementados actualmente:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
+
+Controladores implementados:
+
+- `App\Http\Controllers\Auth\RegisterController`
+- `App\Http\Controllers\Auth\LoginController`
+- `App\Http\Controllers\Auth\MeController`
+- `App\Http\Controllers\Auth\LogoutController`
+
+Las rutas de autenticación usan sesión con cookie HTTPOnly y están preparadas para consumo desde Angular con `withCredentials: true`.
+
+## Autenticacion
+
+La autenticación actual está publicada en el tag `v0.2.0-auth`.
+
+Flujos implementados:
+
+- Registro público.
+- Login con `email` y `password`.
+- Consulta del usuario autenticado actual.
+- Logout con invalidación de sesión.
+
+### Registro
+
+- `POST /api/auth/register`
+
+Comportamiento:
+
+- Valida `name`, `email`, `password` y `password_confirmation`.
+- El primer usuario registrado recibe rol `admin`.
+- Los usuarios posteriores reciben rol `user`.
+- Ignora cualquier `role` enviado por el cliente.
+- Inicia sesión automáticamente con cookie HTTPOnly.
+
+### Login
+
+- `POST /api/auth/login`
+
+Comportamiento:
+
+- Valida `email` y `password`.
+- Responde `401` con mensaje genérico si las credenciales son inválidas.
+- Regenera la sesión después de autenticación exitosa.
+- Devuelve el usuario autenticado con su `role`.
+
+### Usuario Autenticado
+
+- `GET /api/auth/me`
+
+Comportamiento:
+
+- Requiere sesión autenticada válida.
+- Devuelve `id`, `name`, `email`, `role`, `created_at` y `updated_at`.
+- Si no hay sesión activa, responde `401` con `{"message":"Unauthenticated."}`.
+
+### Logout
+
+- `POST /api/auth/logout`
+
+Comportamiento:
+
+- Requiere sesión autenticada válida.
+- Cierra la sesión actual.
+- Invalida la sesión.
+- Regenera el token de sesión.
+- Responde `204 No Content`.
+
+### Contrato JSON Actual
+
+Respuesta exitosa típica:
+
+```json
+{
+  "data": {
+    "user": {
+      "id": 1,
+      "name": "Anthony Rengifo",
+      "email": "anthony@example.com",
+      "role": "admin",
+      "created_at": "2026-05-17T00:00:00.000000Z",
+      "updated_at": "2026-05-17T00:00:00.000000Z"
+    }
+  },
+  "message": "Operation completed successfully"
+}
+```
+
+Usuario no autenticado:
+
+```json
+{
+  "message": "Unauthenticated."
+}
+```
 
 ## Base De Datos
 
@@ -185,10 +283,12 @@ Modelos disponibles:
 
 ## Flujo Gitflow
 
-Rama actual de trabajo para la base de datos:
+Ramas usadas hasta ahora:
 
 - `feature/database-structure`
+- `feature/authentication`
 
-Tag publicado:
+Tags publicados:
 
 - `v0.1.0-database`
+- `v0.2.0-auth`
