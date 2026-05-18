@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\User;
 
+use App\Models\Purchase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -132,6 +133,8 @@ class ManageUsersTest extends TestCase
             'email' => 'updated@example.com',
             'role' => 'user',
         ])->assertUnauthorized();
+
+        $this->deleteJson("/api/users/{$user->id}")->assertUnauthorized();
     }
 
     public function test_non_admin_cannot_create_or_update_users(): void
@@ -169,6 +172,13 @@ class ManageUsersTest extends TestCase
                 'email' => 'updated@example.com',
                 'role' => 'user',
             ])
+            ->assertForbidden()
+            ->assertExactJson([
+                'message' => 'Forbidden.',
+            ]);
+
+        $this->actingAs($regularUser, 'web')
+            ->deleteJson("/api/users/{$targetUser->id}")
             ->assertForbidden()
             ->assertExactJson([
                 'message' => 'Forbidden.',
@@ -257,5 +267,101 @@ class ManageUsersTest extends TestCase
         $admin->refresh();
 
         $this->assertSame('admin', $admin->role);
+    }
+
+    public function test_admin_can_delete_a_user_without_history(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $user = User::query()->create([
+            'name' => 'Regular User',
+            'email' => 'user@example.com',
+            'password' => 'Password*123',
+            'role' => 'user',
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson("/api/users/{$user->id}")
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('users', [
+            'id' => $user->id,
+        ]);
+    }
+
+    public function test_admin_gets_not_found_when_deleting_missing_user(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson('/api/users/999999')
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => 'User not found',
+            ]);
+    }
+
+    public function test_admin_cannot_delete_own_user_account(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson("/api/users/{$admin->id}")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['user'])
+            ->assertJsonPath('errors.user.0', 'You cannot delete your own user account.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $admin->id,
+        ]);
+    }
+
+    public function test_admin_cannot_delete_user_with_purchase_history(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $user = User::query()->create([
+            'name' => 'Regular User',
+            'email' => 'user@example.com',
+            'password' => 'Password*123',
+            'role' => 'user',
+        ]);
+
+        Purchase::query()->create([
+            'user_id' => $user->id,
+            'total' => 100,
+            'status' => 'completed',
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson("/api/users/{$user->id}")
+            ->assertStatus(409)
+            ->assertExactJson([
+                'message' => 'User cannot be deleted because it has associated history.',
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+        ]);
     }
 }

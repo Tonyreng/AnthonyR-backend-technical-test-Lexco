@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\UserDeletionConflictException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -65,6 +66,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'User not found',
                 ], 404);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (UserDeletionConflictException $exception, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                ], 409);
             }
 
             return null;
