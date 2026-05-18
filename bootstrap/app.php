@@ -52,6 +52,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
 
+            if ($request->is('api/*') && $exception->getModel() === App\Models\Product::class) {
+                return response()->json([
+                    'message' => 'Product not found',
+                ], 404);
+            }
+
             return null;
         });
 
@@ -65,6 +71,16 @@ return Application::configure(basePath: dirname(__DIR__))
             ) {
                 return response()->json([
                     'message' => 'User not found',
+                ], 404);
+            }
+
+            if (
+                $request->is('api/*')
+                && $previous instanceof ModelNotFoundException
+                && $previous->getModel() === App\Models\Product::class
+            ) {
+                return response()->json([
+                    'message' => 'Product not found',
                 ], 404);
             }
 
