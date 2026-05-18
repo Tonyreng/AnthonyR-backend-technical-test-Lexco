@@ -73,6 +73,7 @@ Las rutas API base están registradas en `routes/api.php`, separadas en:
 - `routes/users.php`
 - `routes/products.php`
 - `routes/catalog.php`
+- `routes/purchases.php`
 
 Endpoints implementados actualmente:
 
@@ -93,6 +94,7 @@ Endpoints implementados actualmente:
 - `DELETE /api/products/{product}`
 - `GET /api/catalog/products`
 - `GET /api/catalog/products/{product}`
+- `POST /api/purchases`
 
 Controladores implementados:
 
@@ -506,6 +508,114 @@ Comportamiento:
 - Los endpoints de catalogo no exponen `created_at`, `updated_at` ni relaciones internas.
 - Un producto con historial de compra no puede eliminarse.
 
+## Compra De Productos
+
+El flujo de compras corresponde al tag `v0.5.0-purchase-flow`.
+
+Funciones implementadas:
+
+- Crear compras autenticadas.
+- Comprar uno o varios productos distintos en una sola solicitud.
+- Descontar inventario de todos los productos comprados.
+- Registrar compra y sus items asociados.
+- Evitar compras parciales cuando existe error de validacion, producto inexistente o stock insuficiente.
+
+### Endpoint
+
+- `POST /api/purchases`
+
+### Permisos
+
+- Requiere sesion valida.
+- Permite acceso a usuarios con rol `admin` y `user`.
+- No usa middleware `admin`.
+- Un usuario no autenticado recibe `401 Unauthorized`.
+
+### Contrato De Entrada
+
+Request esperado:
+
+```json
+{
+    "items": [
+        {
+            "product_id": 1,
+            "quantity": 2
+        },
+        {
+            "product_id": 3,
+            "quantity": 1
+        }
+    ]
+}
+```
+
+Reglas:
+
+- `items` es requerido y debe contener al menos un item.
+- Cada item debe incluir `product_id` y `quantity`.
+- `quantity` debe ser entero y mayor o igual a `1`.
+- No se permiten productos duplicados dentro del mismo request.
+- El backend no acepta `price`, `stock`, `subtotal`, `total`, `status` ni `user_id` como fuente de verdad.
+
+### Comportamiento
+
+- Busca todos los productos solicitados dentro de una transaccion.
+- Bloquea filas de productos con `lockForUpdate()` para evitar vender mas unidades que las disponibles en compras concurrentes.
+- Calcula `unit_price`, `subtotal` por item y `total` general desde la base de datos.
+- Crea un registro en `purchases` asociado al usuario autenticado.
+- Crea un registro en `purchase_items` por cada producto comprado.
+- Descuenta el stock correspondiente de cada producto.
+- Si falla cualquier validacion o regla de negocio, hace rollback completo.
+- Responde `201 Created` cuando la compra es exitosa.
+
+### Respuesta Exitosa
+
+```json
+{
+    "data": {
+        "id": 1,
+        "user_id": 5,
+        "total": "2649.97",
+        "status": "completed",
+        "items": [
+            {
+                "product_id": 1,
+                "quantity": 2,
+                "unit_price": "1299.99",
+                "subtotal": "2599.98"
+            },
+            {
+                "product_id": 3,
+                "quantity": 1,
+                "unit_price": "49.99",
+                "subtotal": "49.99"
+            }
+        ]
+    },
+    "message": "Purchase completed successfully"
+}
+```
+
+### Respuestas Y Errores Esperados
+
+- `201 Created` para compra exitosa.
+- `401 Unauthorized` para usuarios no autenticados.
+- `404 Not Found` cuando uno de los productos no existe.
+- `409 Conflict` cuando uno de los productos no tiene stock suficiente.
+- `422 Unprocessable Entity` para errores de validacion.
+
+### Reglas De Negocio Relevantes
+
+- Solo usuarios autenticados pueden comprar.
+- Usuarios `admin` y `user` pueden comprar.
+- Una compra puede contener multiples productos distintos.
+- Todos los productos deben existir para crear la compra.
+- Todos los productos deben tener stock suficiente para crear la compra.
+- Si un producto falla, toda la compra falla.
+- No se debe descontar inventario ni registrar compras parciales en errores.
+- El estado inicial de la compra es `completed`.
+
 ## Relaciones Eloquent
 
 Relaciones implementadas:
@@ -532,6 +642,7 @@ Ramas usadas hasta ahora:
 - `feature/authentication`
 - `feature/user-management`
 - `feature/product-management`
+- `feature/purchase-flow`
 
 Tags publicados:
 
@@ -539,3 +650,4 @@ Tags publicados:
 - `v0.2.0-auth`
 - `v0.3.0-users-management`
 - `v0.4.0-product-management`
+- `v0.5.0-purchase-flow`
