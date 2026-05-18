@@ -196,6 +196,35 @@ class ManageProductsTest extends TestCase
             ->assertJsonPath('data.0.name', 'Laptop Pro');
     }
 
+    public function test_admin_can_get_product_detail(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $product = Product::query()->create([
+            'name' => 'Laptop Pro',
+            'description' => 'Laptop de alto rendimiento',
+            'category' => 'electronics',
+            'price' => 1299.99,
+            'stock' => 12,
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->getJson("/api/products/{$product->id}")
+            ->assertOk()
+            ->assertJsonPath('data.id', $product->id)
+            ->assertJsonPath('data.name', 'Laptop Pro')
+            ->assertJsonPath('data.description', 'Laptop de alto rendimiento')
+            ->assertJsonPath('data.category', 'electronics')
+            ->assertJsonPath('data.price', '1299.99')
+            ->assertJsonPath('data.stock', 12)
+            ->assertJsonPath('message', 'Product retrieved successfully');
+    }
+
     public function test_admin_can_update_a_product_with_all_fields(): void
     {
         $admin = User::query()->create([
@@ -303,6 +332,12 @@ class ManageProductsTest extends TestCase
                 'message' => 'Unauthenticated.',
             ]);
 
+        $this->getJson("/api/products/{$product->id}")
+            ->assertUnauthorized()
+            ->assertExactJson([
+                'message' => 'Unauthenticated.',
+            ]);
+
         $this->deleteJson("/api/products/{$product->id}")
             ->assertUnauthorized()
             ->assertExactJson([
@@ -326,6 +361,13 @@ class ManageProductsTest extends TestCase
             'price' => 1299.99,
             'stock' => 12,
         ]);
+
+        $this->actingAs($user, 'web')
+            ->getJson("/api/products/{$product->id}")
+            ->assertForbidden()
+            ->assertExactJson([
+                'message' => 'Forbidden.',
+            ]);
 
         $this->actingAs($user, 'web')
             ->putJson("/api/products/{$product->id}", [
@@ -402,6 +444,13 @@ class ManageProductsTest extends TestCase
             'password' => 'Password*123',
             'role' => 'admin',
         ]);
+
+        $this->actingAs($admin, 'web')
+            ->getJson('/api/products/999999')
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => 'Product not found',
+            ]);
 
         $this->actingAs($admin, 'web')
             ->patchJson('/api/products/999999', [
