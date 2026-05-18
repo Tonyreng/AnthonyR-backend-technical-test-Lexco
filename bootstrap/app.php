@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
@@ -9,6 +10,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -37,6 +39,32 @@ return Application::configure(basePath: dirname(__DIR__))
                 return response()->json([
                     'message' => 'Unauthenticated.',
                 ], 401);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (ModelNotFoundException $exception, $request) {
+            if ($request->is('api/*') && $exception->getModel() === App\Models\User::class) {
+                return response()->json([
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (NotFoundHttpException $exception, $request) {
+            $previous = $exception->getPrevious();
+
+            if (
+                $request->is('api/*')
+                && $previous instanceof ModelNotFoundException
+                && $previous->getModel() === App\Models\User::class
+            ) {
+                return response()->json([
+                    'message' => 'User not found',
+                ], 404);
             }
 
             return null;
