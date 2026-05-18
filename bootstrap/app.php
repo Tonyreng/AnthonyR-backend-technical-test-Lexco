@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\PurchaseStockConflictException;
 use App\Exceptions\ProductDeletionConflictException;
 use App\Exceptions\UserDeletionConflictException;
 use Illuminate\Auth\AuthenticationException;
@@ -99,6 +100,16 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ProductDeletionConflictException $exception, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                ], 409);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (PurchaseStockConflictException $exception, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => $exception->getMessage(),
