@@ -371,7 +371,7 @@ Comportamiento:
 
 ## Gestion De Productos
 
-La gestion de productos y el catalogo autenticado viven actualmente en la rama `feature/product-management`.
+La gestion de productos y el catalogo autenticado corresponden al tag `v0.4.0-product-management`.
 
 Funciones implementadas:
 
@@ -538,3 +538,4 @@ Tags publicados:
 - `v0.1.0-database`
 - `v0.2.0-auth`
 - `v0.3.0-users-management`
+- `v0.4.0-product-management`
