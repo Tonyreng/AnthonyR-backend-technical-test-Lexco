@@ -3,6 +3,8 @@
 namespace Tests\Feature\Product;
 
 use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -300,6 +302,12 @@ class ManageProductsTest extends TestCase
             ->assertExactJson([
                 'message' => 'Unauthenticated.',
             ]);
+
+        $this->deleteJson("/api/products/{$product->id}")
+            ->assertUnauthorized()
+            ->assertExactJson([
+                'message' => 'Unauthenticated.',
+            ]);
     }
 
     public function test_non_admin_user_cannot_update_products(): void
@@ -323,6 +331,13 @@ class ManageProductsTest extends TestCase
             ->putJson("/api/products/{$product->id}", [
                 'stock' => 10,
             ])
+            ->assertForbidden()
+            ->assertExactJson([
+                'message' => 'Forbidden.',
+            ]);
+
+        $this->actingAs($user, 'web')
+            ->deleteJson("/api/products/{$product->id}")
             ->assertForbidden()
             ->assertExactJson([
                 'message' => 'Forbidden.',
@@ -396,5 +411,98 @@ class ManageProductsTest extends TestCase
             ->assertExactJson([
                 'message' => 'Product not found',
             ]);
+    }
+
+    public function test_admin_can_delete_a_product_without_purchase_history(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $product = Product::query()->create([
+            'name' => 'Laptop Pro',
+            'description' => 'Laptop de alto rendimiento',
+            'category' => 'electronics',
+            'price' => 1299.99,
+            'stock' => 12,
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson("/api/products/{$product->id}")
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('products', [
+            'id' => $product->id,
+        ]);
+    }
+
+    public function test_admin_gets_not_found_when_deleting_missing_product(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson('/api/products/999999')
+            ->assertNotFound()
+            ->assertExactJson([
+                'message' => 'Product not found',
+            ]);
+    }
+
+    public function test_admin_cannot_delete_product_with_purchase_history(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => 'Password*123',
+            'role' => 'admin',
+        ]);
+
+        $buyer = User::query()->create([
+            'name' => 'Buyer User',
+            'email' => 'buyer@example.com',
+            'password' => 'Password*123',
+            'role' => 'user',
+        ]);
+
+        $product = Product::query()->create([
+            'name' => 'Laptop Pro',
+            'description' => 'Laptop de alto rendimiento',
+            'category' => 'electronics',
+            'price' => 1299.99,
+            'stock' => 12,
+        ]);
+
+        $purchase = Purchase::query()->create([
+            'user_id' => $buyer->id,
+            'total' => 1299.99,
+            'status' => 'completed',
+        ]);
+
+        PurchaseItem::query()->create([
+            'purchase_id' => $purchase->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'unit_price' => 1299.99,
+            'subtotal' => 1299.99,
+        ]);
+
+        $this->actingAs($admin, 'web')
+            ->deleteJson("/api/products/{$product->id}")
+            ->assertStatus(409)
+            ->assertExactJson([
+                'message' => 'Product cannot be deleted because it has associated purchase history.',
+            ]);
+
+        $this->assertDatabaseHas('products', [
+            'id' => $product->id,
+        ]);
     }
 }
