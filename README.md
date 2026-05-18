@@ -192,5 +192,3 @@ Rama actual de trabajo para la base de datos:
 Tag publicado:
 
 - `v0.1.0-database`
-
-El flujo recomendado es abrir un Pull Request desde `feature/database-structure` hacia `develop`, validar los cambios y hacer merge desde GitHub.
