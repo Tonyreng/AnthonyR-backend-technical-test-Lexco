@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\ProductDeletionConflictException;
 use App\Exceptions\UserDeletionConflictException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -52,6 +53,12 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
 
+            if ($request->is('api/*') && $exception->getModel() === App\Models\Product::class) {
+                return response()->json([
+                    'message' => 'Product not found',
+                ], 404);
+            }
+
             return null;
         });
 
@@ -68,10 +75,30 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
 
+            if (
+                $request->is('api/*')
+                && $previous instanceof ModelNotFoundException
+                && $previous->getModel() === App\Models\Product::class
+            ) {
+                return response()->json([
+                    'message' => 'Product not found',
+                ], 404);
+            }
+
             return null;
         });
 
         $exceptions->render(function (UserDeletionConflictException $exception, $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => $exception->getMessage(),
+                ], 409);
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (ProductDeletionConflictException $exception, $request) {
             if ($request->is('api/*')) {
                 return response()->json([
                     'message' => $exception->getMessage(),

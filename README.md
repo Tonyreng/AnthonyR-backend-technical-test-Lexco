@@ -1,6 +1,6 @@
 # Lexco Backend
 
-Backend Laravel 13 preparado para desarrollar la API REST de usuarios, productos y compras.
+Backend Laravel 13 preparado para desarrollar la API REST de usuarios, productos, catalogo y compras.
 
 ## Requisitos
 
@@ -72,6 +72,7 @@ Las rutas API base están registradas en `routes/api.php`, separadas en:
 - `routes/auth.php`
 - `routes/users.php`
 - `routes/products.php`
+- `routes/catalog.php`
 
 Endpoints implementados actualmente:
 
@@ -84,6 +85,14 @@ Endpoints implementados actualmente:
 - `PUT /api/users/{user}`
 - `PATCH /api/users/{user}`
 - `DELETE /api/users/{user}`
+- `GET /api/products`
+- `GET /api/products/{product}`
+- `POST /api/products`
+- `PUT /api/products/{product}`
+- `PATCH /api/products/{product}`
+- `DELETE /api/products/{product}`
+- `GET /api/catalog/products`
+- `GET /api/catalog/products/{product}`
 
 Controladores implementados:
 
@@ -360,6 +369,143 @@ Comportamiento:
 - Un administrador no puede eliminarse a si mismo.
 - Un usuario con historial de compras no puede eliminarse.
 
+## Gestion De Productos
+
+La gestion de productos y el catalogo autenticado corresponden al tag `v0.4.0-product-management`.
+
+Funciones implementadas:
+
+- Listar productos.
+- Consultar detalle de producto.
+- Crear productos.
+- Editar productos.
+- Eliminar productos.
+- Listar productos disponibles en catalogo autenticado.
+- Consultar detalle de producto disponible en catalogo autenticado.
+
+### Endpoints Administrativos
+
+- `GET /api/products`
+- `GET /api/products/{product}`
+- `POST /api/products`
+- `PUT /api/products/{product}`
+- `PATCH /api/products/{product}`
+- `DELETE /api/products/{product}`
+
+### Permisos Administrativos
+
+- Todas las rutas de product management requieren sesion valida.
+- Todas las rutas de product management requieren rol `admin`.
+- Un usuario autenticado con rol `user` recibe `403 Forbidden`.
+- Un usuario no autenticado recibe `401 Unauthorized`.
+
+### Listado De Productos
+
+- `GET /api/products`
+
+Comportamiento:
+
+- Devuelve listado paginado de productos.
+- Soporta query params `page`, `per_page`, `search`, `category` e `in_stock`.
+- La respuesta incluye `data`, `meta` y `message`.
+- Permite filtrar por coincidencias de texto y categoria.
+
+### Detalle De Producto Administrativo
+
+- `GET /api/products/{product}`
+
+Comportamiento:
+
+- Devuelve el detalle completo del producto administrativo.
+- Responde `404 Not Found` con `{"message":"Product not found"}` cuando el producto no existe.
+
+### Crear Producto
+
+- `POST /api/products`
+
+Comportamiento:
+
+- Permite crear productos con `name`, `description`, `category`, `price` y `stock`.
+- Valida campos requeridos y tipos esperados.
+- Permite precio `0` y stock `0`.
+- Responde `201 Created`.
+
+### Editar Producto
+
+- `PUT /api/products/{product}`
+- `PATCH /api/products/{product}`
+
+Comportamiento:
+
+- Permite editar `name`, `description`, `category`, `price` y `stock`.
+- Soporta actualizacion total o parcial.
+- Responde `200 OK`.
+- Responde `404 Not Found` cuando el producto no existe.
+
+### Eliminar Producto
+
+- `DELETE /api/products/{product}`
+
+Comportamiento:
+
+- Elimina fisicamente al producto si no tiene historial asociado.
+- Bloquea eliminar productos con historial de compra asociado.
+- Responde `204 No Content` en caso de exito.
+- Responde `409 Conflict` si existe historial asociado.
+
+### Catalogo Autenticado
+
+Endpoints:
+
+- `GET /api/catalog/products`
+- `GET /api/catalog/products/{product}`
+
+Permisos:
+
+- Requiere sesion valida.
+- Permite acceso a usuarios con rol `admin` y `user`.
+- No usa middleware `admin`.
+
+#### Listado De Catalogo
+
+- `GET /api/catalog/products`
+
+Comportamiento:
+
+- Devuelve solo productos con `stock > 0`.
+- Soporta query params `page`, `per_page`, `search` y `category`.
+- La respuesta incluye `data`, `meta` y `message`.
+- Solo expone `id`, `name`, `description`, `category`, `price` y `stock`.
+
+#### Detalle De Catalogo
+
+- `GET /api/catalog/products/{product}`
+
+Comportamiento:
+
+- Devuelve solo productos con `stock > 0`.
+- Solo expone `id`, `name`, `description`, `category`, `price` y `stock`.
+- Responde `404 Not Found` con `{"message":"Product not found"}` si el producto no existe o no tiene stock.
+
+### Respuestas Y Errores Esperados
+
+- `200 OK` para consultas y actualizaciones exitosas.
+- `201 Created` para creacion exitosa.
+- `204 No Content` para eliminacion exitosa.
+- `401 Unauthorized` para usuarios no autenticados.
+- `403 Forbidden` para usuarios autenticados sin permisos administrativos.
+- `404 Not Found` cuando el producto no existe o no esta disponible en catalogo.
+- `409 Conflict` cuando el producto no puede eliminarse por historial asociado.
+- `422 Unprocessable Entity` para errores de validacion.
+
+### Reglas De Negocio Relevantes
+
+- Solo administradores pueden crear, editar o eliminar productos.
+- El catalogo autenticado permite acceso a usuarios `admin` y `user`.
+- El catalogo solo expone productos con `stock > 0`.
+- Los endpoints de catalogo no exponen `created_at`, `updated_at` ni relaciones internas.
+- Un producto con historial de compra no puede eliminarse.
+
 ## Relaciones Eloquent
 
 Relaciones implementadas:
@@ -385,9 +531,11 @@ Ramas usadas hasta ahora:
 - `feature/database-structure`
 - `feature/authentication`
 - `feature/user-management`
+- `feature/product-management`
 
 Tags publicados:
 
 - `v0.1.0-database`
 - `v0.2.0-auth`
 - `v0.3.0-users-management`
+- `v0.4.0-product-management`
