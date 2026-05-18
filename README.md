@@ -79,6 +79,11 @@ Endpoints implementados actualmente:
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `POST /api/auth/logout`
+- `GET /api/users`
+- `POST /api/users`
+- `PUT /api/users/{user}`
+- `PATCH /api/users/{user}`
+- `DELETE /api/users/{user}`
 
 Controladores implementados:
 
@@ -88,90 +93,6 @@ Controladores implementados:
 - `App\Http\Controllers\Auth\LogoutController`
 
 Las rutas de autenticación usan sesión con cookie HTTPOnly y están preparadas para consumo desde Angular con `withCredentials: true`.
-
-## Autenticacion
-
-La autenticación actual está publicada en el tag `v0.2.0-auth`.
-
-Flujos implementados:
-
-- Registro público.
-- Login con `email` y `password`.
-- Consulta del usuario autenticado actual.
-- Logout con invalidación de sesión.
-
-### Registro
-
-- `POST /api/auth/register`
-
-Comportamiento:
-
-- Valida `name`, `email`, `password` y `password_confirmation`.
-- El primer usuario registrado recibe rol `admin`.
-- Los usuarios posteriores reciben rol `user`.
-- Ignora cualquier `role` enviado por el cliente.
-- Inicia sesión automáticamente con cookie HTTPOnly.
-
-### Login
-
-- `POST /api/auth/login`
-
-Comportamiento:
-
-- Valida `email` y `password`.
-- Responde `401` con mensaje genérico si las credenciales son inválidas.
-- Regenera la sesión después de autenticación exitosa.
-- Devuelve el usuario autenticado con su `role`.
-
-### Usuario Autenticado
-
-- `GET /api/auth/me`
-
-Comportamiento:
-
-- Requiere sesión autenticada válida.
-- Devuelve `id`, `name`, `email`, `role`, `created_at` y `updated_at`.
-- Si no hay sesión activa, responde `401` con `{"message":"Unauthenticated."}`.
-
-### Logout
-
-- `POST /api/auth/logout`
-
-Comportamiento:
-
-- Requiere sesión autenticada válida.
-- Cierra la sesión actual.
-- Invalida la sesión.
-- Regenera el token de sesión.
-- Responde `204 No Content`.
-
-### Contrato JSON Actual
-
-Respuesta exitosa típica:
-
-```json
-{
-  "data": {
-    "user": {
-      "id": 1,
-      "name": "Anthony Rengifo",
-      "email": "anthony@example.com",
-      "role": "admin",
-      "created_at": "2026-05-17T00:00:00.000000Z",
-      "updated_at": "2026-05-17T00:00:00.000000Z"
-    }
-  },
-  "message": "Operation completed successfully"
-}
-```
-
-Usuario no autenticado:
-
-```json
-{
-  "message": "Unauthenticated."
-}
-```
 
 ## Base De Datos
 
@@ -263,6 +184,182 @@ Decisiones:
 - `purchase_id` usa `cascadeOnDelete()` para eliminar items si se elimina la compra.
 - `product_id` usa `restrictOnDelete()` para bloquear eliminacion de productos con historial de compra.
 
+## Autenticacion
+
+La autenticación actual está publicada en el tag `v0.2.0-auth`.
+
+Flujos implementados:
+
+- Registro público.
+- Login con `email` y `password`.
+- Consulta del usuario autenticado actual.
+- Logout con invalidación de sesión.
+
+### Registro
+
+- `POST /api/auth/register`
+
+Comportamiento:
+
+- Valida `name`, `email`, `password` y `password_confirmation`.
+- El primer usuario registrado recibe rol `admin`.
+- Los usuarios posteriores reciben rol `user`.
+- Ignora cualquier `role` enviado por el cliente.
+- Inicia sesión automáticamente con cookie HTTPOnly.
+
+### Login
+
+- `POST /api/auth/login`
+
+Comportamiento:
+
+- Valida `email` y `password`.
+- Responde `401` con mensaje genérico si las credenciales son inválidas.
+- Regenera la sesión después de autenticación exitosa.
+- Devuelve el usuario autenticado con su `role`.
+
+### Usuario Autenticado
+
+- `GET /api/auth/me`
+
+Comportamiento:
+
+- Requiere sesión autenticada válida.
+- Devuelve `id`, `name`, `email`, `role`, `created_at` y `updated_at`.
+- Si no hay sesión activa, responde `401` con `{"message":"Unauthenticated."}`.
+
+### Logout
+
+- `POST /api/auth/logout`
+
+Comportamiento:
+
+- Requiere sesión autenticada válida.
+- Cierra la sesión actual.
+- Invalida la sesión.
+- Regenera el token de sesión.
+- Responde `204 No Content`.
+
+### Contrato JSON Actual
+
+Respuesta exitosa típica:
+
+```json
+{
+    "data": {
+        "user": {
+            "id": 1,
+            "name": "Anthony Rengifo",
+            "email": "anthony@example.com",
+            "role": "admin",
+            "created_at": "2026-05-17T00:00:00.000000Z",
+            "updated_at": "2026-05-17T00:00:00.000000Z"
+        }
+    },
+    "message": "Operation completed successfully"
+}
+```
+
+Usuario no autenticado:
+
+```json
+{
+    "message": "Unauthenticated."
+}
+```
+
+## Gestion De Usuarios
+
+La gestion de usuarios corresponde al tag `v0.3.0-users-management`.
+
+Funciones implementadas:
+
+- Listar usuarios.
+- Crear usuarios.
+- Editar usuarios.
+- Eliminar usuarios.
+
+### Endpoints
+
+- `GET /api/users`
+- `POST /api/users`
+- `PUT /api/users/{user}`
+- `PATCH /api/users/{user}`
+- `DELETE /api/users/{user}`
+
+### Permisos
+
+- Todas las rutas de user management requieren sesion valida.
+- Todas las rutas de user management requieren rol `admin`.
+- Un usuario autenticado con rol `user` recibe `403 Forbidden`.
+- Un usuario no autenticado recibe `401 Unauthorized`.
+
+### Listado De Usuarios
+
+- `GET /api/users`
+
+Comportamiento:
+
+- Devuelve listado paginado de usuarios.
+- Soporta query params `page`, `per_page`, `search` y `role`.
+- La respuesta incluye `data`, `meta` y `message`.
+- Nunca expone `password` ni `remember_token`.
+
+### Crear Usuario
+
+- `POST /api/users`
+
+Comportamiento:
+
+- Permite crear usuarios con `name`, `email`, `password`, `password_confirmation` y `role`.
+- Valida email unico.
+- Valida password segura.
+- Permite asignar rol `admin` o `user`.
+- Responde `201 Created`.
+
+### Editar Usuario
+
+- `PUT /api/users/{user}`
+- `PATCH /api/users/{user}`
+
+Comportamiento:
+
+- Permite editar `name`, `email`, `role` y `password` opcional.
+- Si no se envia `password`, la contrasena actual se mantiene.
+- Valida email unico ignorando el usuario actual.
+- Bloquea que un administrador cambie su propio rol de `admin` a `user`.
+- Responde `200 OK`.
+
+### Eliminar Usuario
+
+- `DELETE /api/users/{user}`
+
+Comportamiento:
+
+- Elimina fisicamente al usuario.
+- Bloquea que un administrador elimine su propia cuenta.
+- Bloquea eliminar usuarios con historial de compras asociado.
+- Responde `204 No Content` en caso de exito.
+
+### Respuestas Y Errores Esperados
+
+- `200 OK` para consultas y actualizaciones exitosas.
+- `201 Created` para creacion exitosa.
+- `204 No Content` para eliminacion exitosa.
+- `401 Unauthorized` para usuarios no autenticados.
+- `403 Forbidden` para usuarios autenticados sin permisos.
+- `404 Not Found` cuando el usuario no existe.
+- `409 Conflict` cuando el usuario no puede eliminarse por historial asociado.
+- `422 Unprocessable Entity` para errores de validacion.
+
+### Reglas De Negocio Relevantes
+
+- Solo administradores pueden gestionar usuarios.
+- No se expone informacion sensible en respuestas.
+- Un administrador no puede degradar su propio rol.
+- Un administrador no puede eliminarse a si mismo.
+- Un usuario con historial de compras no puede eliminarse.
+
 ## Relaciones Eloquent
 
 Relaciones implementadas:
@@ -287,8 +384,10 @@ Ramas usadas hasta ahora:
 
 - `feature/database-structure`
 - `feature/authentication`
+- `feature/user-management`
 
 Tags publicados:
 
 - `v0.1.0-database`
 - `v0.2.0-auth`
+- `v0.3.0-users-management`
