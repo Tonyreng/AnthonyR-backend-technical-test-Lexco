@@ -18,6 +18,13 @@ class Product extends Model
         'stock',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     * @author OpenCode
+     * @since 2026/05
+     */
     protected function casts(): array
     {
         return [
@@ -26,6 +33,13 @@ class Product extends Model
         ];
     }
 
+    /**
+     * Get purchase items associated with the product.
+     *
+     * @return HasMany
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function purchaseItems(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);

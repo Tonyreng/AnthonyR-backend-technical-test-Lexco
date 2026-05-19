@@ -9,6 +9,15 @@ use Illuminate\Http\JsonResponse;
 
 class RegisterController extends Controller
 {
+    /**
+     * Register a new user and start an authenticated session.
+     *
+     * @param RegisterRequest $request
+     * @param RegisterUserService $registerUserService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(RegisterRequest $request, RegisterUserService $registerUserService): JsonResponse
     {
         $user = $registerUserService->handle($request->validated());

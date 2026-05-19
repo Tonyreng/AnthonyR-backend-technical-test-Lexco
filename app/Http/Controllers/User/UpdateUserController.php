@@ -10,6 +10,16 @@ use Illuminate\Http\JsonResponse;
 
 class UpdateUserController extends Controller
 {
+    /**
+     * Update an existing managed user.
+     *
+     * @param UpdateUserRequest $request
+     * @param User $user
+     * @param UpdateUserService $updateUserService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(UpdateUserRequest $request, User $user, UpdateUserService $updateUserService): JsonResponse
     {
         $updatedUser = $updateUserService->handle($user, $request->validated(), $request->user());

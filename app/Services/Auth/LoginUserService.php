@@ -8,6 +8,14 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginUserService
 {
+    /**
+     * Authenticate a user with session credentials.
+     *
+     * @param LoginRequest $request
+     * @return User|null
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function handle(LoginRequest $request): ?User
     {
         $credentials = $request->safe()->only(['email', 'password']);

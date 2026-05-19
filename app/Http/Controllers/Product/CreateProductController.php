@@ -9,6 +9,15 @@ use Illuminate\Http\JsonResponse;
 
 class CreateProductController extends Controller
 {
+    /**
+     * Create a new managed product.
+     *
+     * @param StoreProductRequest $request
+     * @param CreateProductService $createProductService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(StoreProductRequest $request, CreateProductService $createProductService): JsonResponse
     {
         $product = $createProductService->handle($request->validated());

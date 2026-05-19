@@ -9,6 +9,15 @@ use Illuminate\Http\JsonResponse;
 
 class ListAvailableProductsController extends Controller
 {
+    /**
+     * Retrieve paginated available products for the catalog.
+     *
+     * @param IndexAvailableProductRequest $request
+     * @param ListAvailableProductsService $listAvailableProductsService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(IndexAvailableProductRequest $request, ListAvailableProductsService $listAvailableProductsService): JsonResponse
     {
         $products = $listAvailableProductsService->handle($request->validated());

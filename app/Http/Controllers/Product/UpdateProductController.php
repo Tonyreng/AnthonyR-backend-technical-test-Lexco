@@ -10,6 +10,16 @@ use Illuminate\Http\JsonResponse;
 
 class UpdateProductController extends Controller
 {
+    /**
+     * Update an existing managed product.
+     *
+     * @param UpdateProductRequest $request
+     * @param Product $product
+     * @param UpdateProductService $updateProductService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(UpdateProductRequest $request, Product $product, UpdateProductService $updateProductService): JsonResponse
     {
         $updatedProduct = $updateProductService->handle($product, $request->validated());

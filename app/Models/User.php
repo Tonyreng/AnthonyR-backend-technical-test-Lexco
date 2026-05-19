@@ -30,6 +30,13 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the purchases associated with the user.
+     *
+     * @return HasMany
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function purchases(): HasMany
     {
         return $this->hasMany(Purchase::class);

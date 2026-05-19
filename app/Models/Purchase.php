@@ -17,6 +17,13 @@ class Purchase extends Model
         'status',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     * @author OpenCode
+     * @since 2026/05
+     */
     protected function casts(): array
     {
         return [
@@ -24,11 +31,25 @@ class Purchase extends Model
         ];
     }
 
+    /**
+     * Get the user that owns the purchase.
+     *
+     * @return BelongsTo
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the items associated with the purchase.
+     *
+     * @return HasMany
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class);

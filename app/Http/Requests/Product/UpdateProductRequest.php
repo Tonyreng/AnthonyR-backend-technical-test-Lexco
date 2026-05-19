@@ -7,15 +7,24 @@ use Illuminate\Validation\Validator;
 
 class UpdateProductRequest extends FormRequest
 {
+    /**
+     * Determine if the product update request is authorized.
+     *
+     * @return bool
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules for managed product updates.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @author OpenCode
+     * @since 2026/05
      */
     public function rules(): array
     {
@@ -28,6 +37,14 @@ class UpdateProductRequest extends FormRequest
         ];
     }
 
+    /**
+     * Add post-validation rules for product updates.
+     *
+     * @param Validator $validator
+     * @return void
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {

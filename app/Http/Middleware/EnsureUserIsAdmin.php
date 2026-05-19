@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 
 class EnsureUserIsAdmin
 {
+    /**
+     * Ensure the authenticated user has the admin role.
+     *
+     * @param Request $request
+     * @param Closure $next
+     * @return mixed
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function handle(Request $request, Closure $next)
     {
         if ($request->user()?->role !== 'admin') {

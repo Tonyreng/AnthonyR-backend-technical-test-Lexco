@@ -11,15 +11,24 @@ class UpdateUserRequest extends FormRequest
 {
     use HasUserPasswordRules;
 
+    /**
+     * Determine if the user update request is authorized.
+     *
+     * @return bool
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules for managed user updates.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @author OpenCode
+     * @since 2026/05
      */
     public function rules(): array
     {
@@ -34,6 +43,13 @@ class UpdateUserRequest extends FormRequest
         ];
     }
 
+    /**
+     * Get custom validation messages for user updates.
+     *
+     * @return array<string, string>
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function messages(): array
     {
         return [

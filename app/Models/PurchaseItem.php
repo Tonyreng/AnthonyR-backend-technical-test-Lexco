@@ -18,6 +18,13 @@ class PurchaseItem extends Model
         'subtotal',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     * @author OpenCode
+     * @since 2026/05
+     */
     protected function casts(): array
     {
         return [
@@ -27,11 +34,25 @@ class PurchaseItem extends Model
         ];
     }
 
+    /**
+     * Get the purchase that owns the purchase item.
+     *
+     * @return BelongsTo
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
     }
 
+    /**
+     * Get the product associated with the purchase item.
+     *
+     * @return BelongsTo
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
