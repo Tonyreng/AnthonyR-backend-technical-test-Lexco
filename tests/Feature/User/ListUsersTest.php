@@ -94,7 +94,7 @@ class ListUsersTest extends TestCase
         ]);
 
         $response = $this->actingAs($admin, 'web')
-            ->getJson('/api/users?search=anthony&role=admin');
+            ->getJson('/api/users?search=ANTHONY&role=admin');
 
         $response
             ->assertOk()

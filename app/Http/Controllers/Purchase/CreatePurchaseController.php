@@ -9,6 +9,15 @@ use Illuminate\Http\JsonResponse;
 
 class CreatePurchaseController extends Controller
 {
+    /**
+     * Create a purchase for one or more products.
+     *
+     * @param StorePurchaseRequest $request
+     * @param CreatePurchaseService $createPurchaseService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(StorePurchaseRequest $request, CreatePurchaseService $createPurchaseService): JsonResponse
     {
         $purchase = $createPurchaseService->handle($request->user(), $request->validated());

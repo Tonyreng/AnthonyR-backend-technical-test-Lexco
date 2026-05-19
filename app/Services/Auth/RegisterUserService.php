@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 class RegisterUserService
 {
+    /**
+     * Register a user and assign the initial role.
+     *
+     * @param array<string, mixed> $data
+     * @return User
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function handle(array $data): User
     {
         return DB::transaction(function () use ($data): User {

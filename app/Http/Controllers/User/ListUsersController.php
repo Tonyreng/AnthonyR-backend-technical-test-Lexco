@@ -9,6 +9,15 @@ use Illuminate\Http\JsonResponse;
 
 class ListUsersController extends Controller
 {
+    /**
+     * Retrieve paginated managed users.
+     *
+     * @param IndexUserRequest $request
+     * @param ListUsersService $listUsersService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(IndexUserRequest $request, ListUsersService $listUsersService): JsonResponse
     {
         $users = $listUsersService->handle($request->validated());

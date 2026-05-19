@@ -9,6 +9,15 @@ use Illuminate\Http\JsonResponse;
 
 class LoginController extends Controller
 {
+    /**
+     * Authenticate a user and return the active session user.
+     *
+     * @param LoginRequest $request
+     * @param LoginUserService $loginUserService
+     * @return JsonResponse
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function __invoke(LoginRequest $request, LoginUserService $loginUserService): JsonResponse
     {
         $user = $loginUserService->handle($request);

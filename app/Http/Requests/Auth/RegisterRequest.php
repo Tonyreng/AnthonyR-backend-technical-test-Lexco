@@ -7,15 +7,24 @@ use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
 {
+    /**
+     * Determine if the register request is authorized.
+     *
+     * @return bool
+     * @author OpenCode
+     * @since 2026/05
+     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Get the validation rules for public registration.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @author OpenCode
+     * @since 2026/05
      */
     public function rules(): array
     {

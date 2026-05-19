@@ -9,6 +9,7 @@ trait HasUserPasswordRules
     /**
      * Build the shared password validation rules for user management.
      *
+     * @param bool $required
      * @return array<int, \Illuminate\Contracts\Validation\ValidationRule|string>
      * @author OpenCode
      * @since 2026/05
